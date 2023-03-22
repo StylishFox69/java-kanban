@@ -7,7 +7,7 @@ public class SubTask extends Task {
         this.name = name;
         this.description = description;
         this.epicId = epicId;
-        this.status = status.name();
+        this.status = status;
     }
 
 

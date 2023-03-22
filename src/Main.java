@@ -9,7 +9,7 @@ public class Main {
     public static void main(String[] args) {
         TaskManager taskManager = new TaskManager();
         Task task = taskManager.createTask(new Task());
-        System.out.println("create task: " + taskManager.tasks.get(task.getId()));
+        System.out.println("create task: " + task);
 
         Task taskFromManager = taskManager.getTask(task.getId());
         System.out.println("get task: " + taskFromManager);
@@ -41,16 +41,16 @@ public class Main {
         System.out.println("get epic2: " + epicFromManager2);
 
         System.out.println("Print epics: ");
-        System.out.println(taskManager.epics);
+        taskManager.printEpics();
         System.out.println("Print tasks: ");
-        System.out.println(taskManager.tasks);
+        taskManager.printTasks();
         System.out.println("Print subTasks: ");
-        System.out.println(taskManager.subTasks);
+        taskManager.printSubTasks();
 
         SubTask subTaskFromManager = taskManager.getSubTask(subTask1Epic1.getId());
         System.out.println("get subTask: " + subTaskFromManager);
         subTaskFromManager.setName("new sub");
-        subTaskFromManager.setStatus(Status.DONE.name());
+        subTaskFromManager.setStatus(Status.DONE);
 
         taskManager.updateSubTask(subTaskFromManager);
         System.out.println("update subTask: " + subTaskFromManager);
@@ -58,7 +58,7 @@ public class Main {
         taskManager.updateEpic(epicFromManager);
         System.out.println("update epic: " + epicFromManager);
 
-        taskManager.delete(taskFromManager.getId());
+        taskManager.deleteTask(taskFromManager.getId());
         System.out.println("delete task: " + task);
 
         taskManager.deleteSubTask(subTask2Epic1.getId());
@@ -71,9 +71,20 @@ public class Main {
         System.out.println("Update epic1: " + epic1);
 
         taskManager.deleteEpic(epic1.getId());
-        System.out.println("delete epic1" + epic1);
+        System.out.println("delete epic1: " + epic1);
 
-        System.out.println(taskManager.epics);
-        System.out.println(taskManager.subTasks);
+        taskManager.printEpics();
+        taskManager.printTasks();
+        taskManager.printSubTasks();
+
+        taskManager.printSubTasksByEpic(epic2.getId());
+
+        taskManager.deleteAllTasks();
+        taskManager.deleteAllSubtasks();
+        taskManager.deleteAllEpics();
+
+        taskManager.printEpics();
+        taskManager.printTasks();
+        taskManager.printSubTasks();
     }
 }
