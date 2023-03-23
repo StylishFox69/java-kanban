@@ -11,9 +11,9 @@ import java.util.List;
 
 public class TaskManager {
     int seq = 0;
-    private HashMap<Integer, Task> tasks;
-    private HashMap<Integer, Epic> epics;
-    private HashMap<Integer, SubTask> subTasks;
+    private final HashMap<Integer, Task> tasks;
+    private final HashMap<Integer, Epic> epics;
+    private final HashMap<Integer, SubTask> subTasks;
 
     public TaskManager() {
         this.tasks = new HashMap<>();

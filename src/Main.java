@@ -80,6 +80,7 @@ public class Main {
         System.out.println("Print subTasks: ");
         System.out.println(taskManager.getSubTasks());
 
+        System.out.println("get subtask by epicId");
         System.out.println(taskManager.getSubTasksByEpic(epic2.getId()));
 
         taskManager.deleteAllTasks();
