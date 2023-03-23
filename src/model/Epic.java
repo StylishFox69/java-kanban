@@ -1,22 +1,19 @@
 package model;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Epic extends Task {
     public ArrayList<Integer> subTaskIds = new ArrayList<>();
-
-    public ArrayList<Integer> getSubTaskIds() {
-        return subTaskIds;
-    }
-
-    public void setSubTaskIds(ArrayList<Integer> subTaskIds) {
-        this.subTaskIds = subTaskIds;
-    }
 
     public Epic(String name, String description) {
         this.name = name;
         this.description = description;
         this.status = Status.NEW;
+    }
+
+    public ArrayList<Integer> getSubTaskIds() {
+        return subTaskIds;
     }
 
     @Override
@@ -33,5 +30,20 @@ public class Epic extends Task {
                 ", description = '" + description + '\'' +
                 '}';
         return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Epic epic = (Epic) o;
+        return (getId() == epic.getId()) &&
+                Objects.equals(getName(), epic.getName()) &&
+                Objects.equals(getDescription(), epic.getDescription());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getDescription());
     }
 }
