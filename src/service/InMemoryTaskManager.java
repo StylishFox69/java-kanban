@@ -13,7 +13,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final HashMap<Integer, Task> tasks;
     private final HashMap<Integer, Epic> epics;
     private final HashMap<Integer, SubTask> subTasks;
-    HistoryManager historyManager;
+    private final HistoryManager historyManager;
     private int seq = 0;
 
     public InMemoryTaskManager(HistoryManager historyManager) {
