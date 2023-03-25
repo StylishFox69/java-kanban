@@ -2,12 +2,13 @@ import model.Epic;
 import model.Status;
 import model.SubTask;
 import model.Task;
+import service.Managers;
 import service.TaskManager;
 
 public class Main {
 
     public static void main(String[] args) {
-        TaskManager taskManager = new TaskManager();
+        TaskManager taskManager = Managers.getDefaultTaskManager();
         Task task = taskManager.createTask(new Task());
         System.out.println("create task: " + task);
 
@@ -17,7 +18,6 @@ public class Main {
         taskFromManager.setName("New name");
         taskManager.updateTask(taskFromManager);
         System.out.println("update task: " + taskFromManager);
-
 
         Epic epic1 = taskManager.createEpic(new Epic("Epic1", "DS"));
         System.out.println("create epic 1: " + epic1);
@@ -51,6 +51,8 @@ public class Main {
         System.out.println("get subTask 1.1: " + subTaskFromManager);
         subTaskFromManager.setName("new sub");
         subTaskFromManager.setStatus(Status.DONE);
+
+        System.out.println("Get History: " + taskManager.getHistory());
 
         taskManager.updateSubTask(subTaskFromManager);
         System.out.println("update subTask 1.1: " + subTaskFromManager);
