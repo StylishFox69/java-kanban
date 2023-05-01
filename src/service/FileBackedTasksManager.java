@@ -184,30 +184,30 @@ public class FileBackedTasksManager extends InMemoryTaskManager implements TaskM
         try {
             content = Files.readString(Path.of(PATH));
         } catch (IOException e) {
-            throw new ManagerSaveException(e.getMessage(), e.getCause());
+            throw new ManagerSaveException("Произошла ошибка при сохранении файла", e.getCause());
         }
         return content;
     }
 
     @Override
     public Task createTask(Task task) {
-        Task task1 = super.createTask(task);
+        Task savedTask = super.createTask(task);
         save();
-        return task1;
+        return savedTask;
     }
 
     @Override
     public SubTask createSubTask(SubTask subTask) {
-        SubTask subTask1 = super.createSubTask(subTask);
+        SubTask savedSubTask = super.createSubTask(subTask);
         save();
-        return subTask1;
+        return savedSubTask;
     }
 
     @Override
     public Epic createEpic(Epic epic) {
-        Epic epic1 = super.createEpic(epic);
+        Epic savedEpic = super.createEpic(epic);
         save();
-        return epic1;
+        return savedEpic;
 
     }
 

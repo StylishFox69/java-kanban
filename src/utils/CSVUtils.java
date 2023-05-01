@@ -64,7 +64,7 @@ public class CSVUtils extends InMemoryTaskManager {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
-            throw new ManagerReadException(e.getMessage(), e.getCause());
+            throw new ManagerReadException("Произошла ошибка при чтении файла", e.getCause());
         }
         return tasksFromFile;
     }
