@@ -1,6 +1,6 @@
 package service;
 
-import ManagerExceptions.ManagerSaveException;
+import exceptions.ManagerSaveException;
 import model.*;
 import utils.CSVUtils;
 
@@ -11,14 +11,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileBackedTasksManager extends InMemoryTaskManager implements TaskManager {
+public class FileBackedTasksManager extends InMemoryTaskManager {
     public static final String SPLITTER = ",";
-    private static File file;
     public static final String PATH = "resources/tasks.csv";
+    private static final File FILE = new  File(PATH);
 
     public FileBackedTasksManager(File file) {
         super();
-        FileBackedTasksManager.file = file;
+        file = FILE;
     }
 
     public static void main(String[] args) {
@@ -80,7 +80,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager implements TaskM
             return;
         }
         StringBuilder historyToString = new StringBuilder();
-        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file, false))) {
+        try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE, false))) {
             historyToString.append("id,type,name,status,description,epic" + "\n");
             historyToString.append(fillTask(getTasks()));
             historyToString.append(fillEpic(getEpics()));
@@ -93,17 +93,18 @@ public class FileBackedTasksManager extends InMemoryTaskManager implements TaskM
             historyToString.append(historyToString());
             bufferedWriter.write(String.valueOf(historyToString));
         } catch (IOException e) {
-            throw new ManagerSaveException(e.getMessage(), e.getCause());
+            throw new ManagerSaveException("Ошибка сохранения в файл.");
+
         }
     }
 
     private static StringBuilder fillTask(List<Task> tasks) {
         StringBuilder taskToString = new StringBuilder();
         for (Task task : tasks) {
-            taskToString.append(task.getId()).append(",");
-            taskToString.append(task.getType()).append(",");
-            taskToString.append(task.getName()).append(",");
-            taskToString.append(task.getStatus()).append(",");
+            taskToString.append(task.getId()).append(SPLITTER);
+            taskToString.append(task.getType()).append(SPLITTER);
+            taskToString.append(task.getName()).append(SPLITTER);
+            taskToString.append(task.getStatus()).append(SPLITTER);
             taskToString.append(task.getDescription());
             taskToString.append("\n");
         }
@@ -113,10 +114,10 @@ public class FileBackedTasksManager extends InMemoryTaskManager implements TaskM
     private static StringBuilder fillEpic(List<Epic> epics) {
         StringBuilder epicToString = new StringBuilder();
         for (Task epic : epics) {
-            epicToString.append(epic.getId()).append(",");
-            epicToString.append(epic.getType()).append(",");
-            epicToString.append(epic.getName()).append(",");
-            epicToString.append(epic.getStatus()).append(",");
+            epicToString.append(epic.getId()).append(SPLITTER);
+            epicToString.append(epic.getType()).append(SPLITTER);
+            epicToString.append(epic.getName()).append(SPLITTER);
+            epicToString.append(epic.getStatus()).append(SPLITTER);
             epicToString.append(epic.getDescription());
             epicToString.append("\n");
         }
@@ -126,11 +127,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager implements TaskM
     private static StringBuilder fillSubTask(List<SubTask> subTasks) {
         StringBuilder subTaskToString = new StringBuilder();
         for (SubTask subTask : subTasks) {
-            subTaskToString.append(subTask.getId()).append(",");
-            subTaskToString.append(subTask.getType()).append(",");
-            subTaskToString.append(subTask.getName()).append(",");
-            subTaskToString.append(subTask.getStatus()).append(",");
-            subTaskToString.append(subTask.getDescription()).append(",");
+            subTaskToString.append(subTask.getId()).append(SPLITTER);
+            subTaskToString.append(subTask.getType()).append(SPLITTER);
+            subTaskToString.append(subTask.getName()).append(SPLITTER);
+            subTaskToString.append(subTask.getStatus()).append(SPLITTER);
+            subTaskToString.append(subTask.getDescription()).append(SPLITTER);
             subTaskToString.append(subTask.getEpicId());
             subTaskToString.append("\n");
         }
@@ -143,7 +144,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager implements TaskM
         } else {
             StringBuilder sb = new StringBuilder();
             for (Task task : historyManager.getHistory()) {
-                sb.append(task.getId()).append(",");
+                sb.append(task.getId()).append(SPLITTER);
             }
             sb.delete(sb.length() - 1, sb.length());
             return String.valueOf(sb);
@@ -161,7 +162,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager implements TaskM
     }
 
     public static boolean checkFile() {
-        if (file.exists()) {
+        if (FILE.exists()) {
             return true;
         } else {
             return createFile();
@@ -173,7 +174,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager implements TaskM
         try {
             testFile = Files.createFile(Paths.get(PATH));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new ManagerSaveException("Ошибка создания файла.");
         }
         return Files.exists(testFile);
     }
@@ -184,7 +185,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager implements TaskM
         try {
             content = Files.readString(Path.of(PATH));
         } catch (IOException e) {
-            throw new ManagerSaveException("Произошла ошибка при сохранении файла", e.getCause());
+            throw new ManagerSaveException("Произошла ошибка при сохранении файла");
         }
         return content;
     }
