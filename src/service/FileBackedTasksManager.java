@@ -1,10 +1,16 @@
 package service;
 
 import exceptions.ManagerSaveException;
-import model.*;
+import model.Epic;
+import model.Status;
+import model.SubTask;
+import model.Task;
 import utils.CSVUtils;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,7 +20,8 @@ import java.util.List;
 public class FileBackedTasksManager extends InMemoryTaskManager {
     public static final String SPLITTER = ",";
     public static final String PATH = "resources/tasks.csv";
-    private static final File FILE = new  File(PATH);
+    private static final String HEADING_FOR_HISTORY = "id,type,name,status,description,epic" + "\n";
+    private final File FILE = new File(PATH);
 
     public FileBackedTasksManager(File file) {
         super();
@@ -22,7 +29,8 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public static void main(String[] args) {
-        FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(new File(PATH));
+        File file = new File(PATH);
+        FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(file);
         Epic epic0 = fileBackedTasksManager.createEpic(new Epic("0", "DSSD"));
         SubTask subTask01 = fileBackedTasksManager.createSubTask(new SubTask("2", "ssd", Status.DONE, epic0.getId()));
         SubTask subTask02 = fileBackedTasksManager.createSubTask(new SubTask("3", "ds", Status.NEW, epic0.getId()));
@@ -71,71 +79,62 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             System.out.println(task);
         }
         System.out.println("hhh1");
-        CSVUtils.loadFromFile();
-        System.out.println(historyManager.getHistory());
+        System.out.println(fileBackedTasksManager.getHistory());
+        System.out.println(fileBackedTasksManager);
     }
 
-    public void save() {
-        if (!checkFile()) {
-            return;
+    public static boolean createFile() {
+        Path testFile;
+        try {
+            testFile = Files.createFile(Paths.get(PATH));
+        } catch (IOException e) {
+            throw new ManagerSaveException("Ошибка создания файла.");
         }
+        return Files.exists(testFile);
+    }
+
+    public static FileBackedTasksManager loadFromFile(File file) {
+        FileBackedTasksManager fb = new FileBackedTasksManager(file);
+        List<String> tasks = CSVUtils.read();
+        for (int i = 0; i < tasks.size() - 2; i++) {
+            Task task = CSVUtils.fromString(tasks.get(i));
+            switch (task.getType()) {
+                case SUBTASK:
+                    SubTask subTask = (SubTask) task;
+                    Epic epic = fb.epics.get(subTask.getEpicId());
+                    epic.getSubTaskIds().add(subTask.getId());
+                    fb.subTasks.put(subTask.getId(), subTask);
+                    break;
+                case EPIC:
+                    Epic epic1 = (Epic) task;
+                    fb.epics.put(epic1.getId(), epic1);
+                    break;
+                case TASK:
+                    fb.tasks.put(task.getId(), task);
+                    break;
+            }
+        }
+        CSVUtils.historyFromString(tasks.get(tasks.size() - 1));
+        return fb;
+    }
+
+    private void save() {
         StringBuilder historyToString = new StringBuilder();
         try (BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(FILE, false))) {
-            historyToString.append("id,type,name,status,description,epic" + "\n");
-            historyToString.append(fillTask(getTasks()));
-            historyToString.append(fillEpic(getEpics()));
-            historyToString.append(fillSubTask(getSubTasks()));
+            historyToString.append(HEADING_FOR_HISTORY);
+            historyToString.append(CSVUtils.fillTask(getTasks()));
+            historyToString.append(CSVUtils.fillEpic(getEpics()));
+            historyToString.append(CSVUtils.fillSubTask(getSubTasks()));
             historyToString.append("\n");
             if (historyManager.getHistory().size() == 0) {
-                historyToString.append("end");
+                historyToString.append("\n");
                 return;
             }
             historyToString.append(historyToString());
             bufferedWriter.write(String.valueOf(historyToString));
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка сохранения в файл.");
-
         }
-    }
-
-    private static StringBuilder fillTask(List<Task> tasks) {
-        StringBuilder taskToString = new StringBuilder();
-        for (Task task : tasks) {
-            taskToString.append(task.getId()).append(SPLITTER);
-            taskToString.append(task.getType()).append(SPLITTER);
-            taskToString.append(task.getName()).append(SPLITTER);
-            taskToString.append(task.getStatus()).append(SPLITTER);
-            taskToString.append(task.getDescription());
-            taskToString.append("\n");
-        }
-        return taskToString;
-    }
-
-    private static StringBuilder fillEpic(List<Epic> epics) {
-        StringBuilder epicToString = new StringBuilder();
-        for (Task epic : epics) {
-            epicToString.append(epic.getId()).append(SPLITTER);
-            epicToString.append(epic.getType()).append(SPLITTER);
-            epicToString.append(epic.getName()).append(SPLITTER);
-            epicToString.append(epic.getStatus()).append(SPLITTER);
-            epicToString.append(epic.getDescription());
-            epicToString.append("\n");
-        }
-        return epicToString;
-    }
-
-    private static StringBuilder fillSubTask(List<SubTask> subTasks) {
-        StringBuilder subTaskToString = new StringBuilder();
-        for (SubTask subTask : subTasks) {
-            subTaskToString.append(subTask.getId()).append(SPLITTER);
-            subTaskToString.append(subTask.getType()).append(SPLITTER);
-            subTaskToString.append(subTask.getName()).append(SPLITTER);
-            subTaskToString.append(subTask.getStatus()).append(SPLITTER);
-            subTaskToString.append(subTask.getDescription()).append(SPLITTER);
-            subTaskToString.append(subTask.getEpicId());
-            subTaskToString.append("\n");
-        }
-        return subTaskToString;
     }
 
     public String historyToString() {
@@ -149,34 +148,6 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             sb.delete(sb.length() - 1, sb.length());
             return String.valueOf(sb);
         }
-    }
-
-    public static void historyFromString(String value) {
-        if (value.equals("end")) {
-            return;
-        }
-        String[] ids = value.split(SPLITTER);
-        for (String id : ids) {
-            CSVUtils.getUniversalTask(Integer.parseInt(id));
-        }
-    }
-
-    public static boolean checkFile() {
-        if (FILE.exists()) {
-            return true;
-        } else {
-            return createFile();
-        }
-    }
-
-    private static boolean createFile() {
-        Path testFile;
-        try {
-            testFile = Files.createFile(Paths.get(PATH));
-        } catch (IOException e) {
-            throw new ManagerSaveException("Ошибка создания файла.");
-        }
-        return Files.exists(testFile);
     }
 
     @Override
@@ -231,26 +202,6 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         Epic epic = super.getEpic(epicId);
         save();
         return epic;
-    }
-
-    @Override
-    public List<SubTask> getSubTasks() {
-        return super.getSubTasks();
-    }
-
-    @Override
-    public List<Task> getTasks() {
-        return super.getTasks();
-    }
-
-    @Override
-    public List<Epic> getEpics() {
-        return super.getEpics();
-    }
-
-    @Override
-    public List<SubTask> getSubTasksByEpic(int epicId) {
-        return super.getSubTasksByEpic(epicId);
     }
 
     @Override

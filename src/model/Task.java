@@ -2,7 +2,6 @@ package model;
 
 public class Task {
     protected int id;
-    protected TaskType type;
     protected String name;
     protected Status status;
     protected String description;
@@ -15,16 +14,9 @@ public class Task {
         this.name = name;
         this.status = status;
         this.description = description;
-        this.type = TaskType.TASK;
     }
 
-    protected Task(int id, String name, Status status, String description, TaskType type) {
-        this.id = id;
-        this.name = name;
-        this.status = status;
-        this.description = description;
-        this.type = type;
-    }
+
 
     public int getId() {
         return id;

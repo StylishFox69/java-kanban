@@ -1,0 +1,8 @@
+id,type,name,status,description,epic
+1,EPIC,0,IN_PROGRESS,DSSD
+5,EPIC,1,NEW,DSSD
+2,SUBTASK,2,DONE,ssd,1
+3,SUBTASK,3,NEW,ds,1
+4,SUBTASK,4,IN_PROGRESS,ds,1
+
+5,1,2,4,3
