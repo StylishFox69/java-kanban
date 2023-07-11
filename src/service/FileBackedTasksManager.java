@@ -18,19 +18,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FileBackedTasksManager extends InMemoryTaskManager {
-    public static final String SPLITTER = ",";
-    public static final String PATH = "resources/tasks.csv";
-    private static final String HEADING_FOR_HISTORY = "id,type,name,status,description,epic" + "\n";
-    private final File FILE = new File(PATH);
+    private static final String HEADING_FOR_HISTORY = "id,type,name,status,description,epic" + System.lineSeparator();
+    private final File FILE = new File(CSVUtils.PATH);
 
     public FileBackedTasksManager(File file) {
         super();
         file = FILE;
     }
 
+    public FileBackedTasksManager() {
+    }
+
     public static void main(String[] args) {
-        File file = new File(PATH);
-        FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(file);
+        File file = new File(CSVUtils.PATH);
+        FileBackedTasksManager fileBackedTasksManager = CSVUtils.getFb();
         Epic epic0 = fileBackedTasksManager.createEpic(new Epic("0", "DSSD"));
         SubTask subTask01 = fileBackedTasksManager.createSubTask(new SubTask("2", "ssd", Status.DONE, epic0.getId()));
         SubTask subTask02 = fileBackedTasksManager.createSubTask(new SubTask("3", "ds", Status.NEW, epic0.getId()));
@@ -80,20 +81,21 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
         System.out.println("hhh1");
         System.out.println(fileBackedTasksManager.getHistory());
+        fileBackedTasksManager = fileBackedTasksManager.loadFromFile(file);
         System.out.println(fileBackedTasksManager);
     }
 
     public static boolean createFile() {
         Path testFile;
         try {
-            testFile = Files.createFile(Paths.get(PATH));
+            testFile = Files.createFile(Paths.get(CSVUtils.PATH));
         } catch (IOException e) {
             throw new ManagerSaveException("Ошибка создания файла.");
         }
         return Files.exists(testFile);
     }
 
-    public static FileBackedTasksManager loadFromFile(File file) {
+    public FileBackedTasksManager loadFromFile(File file) {
         FileBackedTasksManager fb = new FileBackedTasksManager(file);
         List<String> tasks = CSVUtils.read();
         for (int i = 0; i < tasks.size() - 2; i++) {
@@ -103,6 +105,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     SubTask subTask = (SubTask) task;
                     Epic epic = fb.epics.get(subTask.getEpicId());
                     epic.getSubTaskIds().add(subTask.getId());
+                    calculateEpicStatus(epic);
                     fb.subTasks.put(subTask.getId(), subTask);
                     break;
                 case EPIC:
@@ -114,9 +117,21 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     break;
             }
         }
-        CSVUtils.historyFromString(tasks.get(tasks.size() - 1));
+        historyFromString(tasks.get(tasks.size() - 1));
         return fb;
     }
+
+    public static void historyFromString(String value) {
+        FileBackedTasksManager fileBackedTasksManager = CSVUtils.getFb();
+        if (value.equals(System.lineSeparator())) {
+            return;
+        }
+        String[] ids = value.split(CSVUtils.SPLITTER);
+        for (String id : ids) {
+            CSVUtils.getUniversalTask(Integer.parseInt(id), fileBackedTasksManager);
+        }
+    }
+
 
     private void save() {
         StringBuilder historyToString = new StringBuilder();
@@ -125,9 +140,9 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
             historyToString.append(CSVUtils.fillTask(getTasks()));
             historyToString.append(CSVUtils.fillEpic(getEpics()));
             historyToString.append(CSVUtils.fillSubTask(getSubTasks()));
-            historyToString.append("\n");
-            if (historyManager.getHistory().size() == 0) {
-                historyToString.append("\n");
+            historyToString.append(System.lineSeparator());
+            if (historyManager.getHistory().isEmpty()) {
+                historyToString.append(System.lineSeparator());
                 return;
             }
             historyToString.append(historyToString());
@@ -138,12 +153,12 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     }
 
     public String historyToString() {
-        if (getHistory().size() == 0) {
-            return "end";
+        if (getHistory().isEmpty()) {
+            return System.lineSeparator();
         } else {
             StringBuilder sb = new StringBuilder();
             for (Task task : historyManager.getHistory()) {
-                sb.append(task.getId()).append(SPLITTER);
+                sb.append(task.getId()).append(CSVUtils.SPLITTER);
             }
             sb.delete(sb.length() - 1, sb.length());
             return String.valueOf(sb);
@@ -154,7 +169,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
     public String toString() {
         String content;
         try {
-            content = Files.readString(Path.of(PATH));
+            content = Files.readString(Path.of(CSVUtils.PATH));
         } catch (IOException e) {
             throw new ManagerSaveException("Произошла ошибка при сохранении файла");
         }

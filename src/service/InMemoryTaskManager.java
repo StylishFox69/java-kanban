@@ -14,7 +14,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Task> tasks;
     protected final Map<Integer, Epic> epics;
     protected final Map<Integer, SubTask> subTasks;
-    protected HistoryManager historyManager;
+    protected final HistoryManager historyManager;
     private int seq = 0;
 
     public InMemoryTaskManager() {
@@ -178,7 +178,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
-    private void calculateEpicStatus(Epic epic) {
+    protected void calculateEpicStatus(Epic epic) {
         int completedTasks = 0;
         int newTasks = 0;
         for (Integer subTaskId : epic.getSubTaskIds()) {

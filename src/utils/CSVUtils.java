@@ -8,11 +8,15 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import static service.FileBackedTasksManager.SPLITTER;
-
-public class CSVUtils{
+public class CSVUtils {
+    public static final String SPLITTER = ",";
     public static final String PATH = "resources/tasks.csv";
     private static final File FILE = new File(PATH);
+    static FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(FILE);
+
+    public static FileBackedTasksManager getFb(){
+        return fileBackedTasksManager;
+    }
 
     public static Task fromString(String value) {
         String[] rows = value.split(SPLITTER);
@@ -22,19 +26,22 @@ public class CSVUtils{
         Status status = Status.valueOf(rows[3]);
         String description = rows[4];
         Task task = null;
-        if (type == TaskType.TASK) {
-            task = new Task(id, name, status, description);
-        } else if (type == TaskType.EPIC) {
-            task = new Epic(id, name, status, description, type);
-        } else if (type == TaskType.SUBTASK) {
-            task = new SubTask(id, name, status, description, type,
-                    Integer.parseInt(rows[5]));
+        switch (type) {
+            case TASK:
+                task = new Task(id, name, status, description);
+                break;
+            case EPIC:
+                task = new Epic(id, name, status, description, type);
+                break;
+            case SUBTASK:
+                task = new SubTask(id, name, status, description, type,
+                        Integer.parseInt(rows[5]));
+                break;
         }
         return task;
     }
 
-    public static void getUniversalTask(int id) {
-        FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(FILE);
+    public static void getUniversalTask(int id, FileBackedTasksManager fileBackedTasksManager) {
         if (fileBackedTasksManager.getTask(id) != null) {
             fileBackedTasksManager.getTask(id);
         } else if (fileBackedTasksManager.getSubTask(id) != null) {
@@ -65,10 +72,11 @@ public class CSVUtils{
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         } catch (IOException e) {
-            throw new ManagerReadException("Произошла ошибка при чтении файла", e.getCause());
+            throw new ManagerReadException("Произошла ошибка при чтении файла");
         }
         return tasksFromFile;
     }
+
     public static StringBuilder fillTask(List<Task> tasks) {
         StringBuilder taskToString = new StringBuilder();
         for (Task task : tasks) {
@@ -107,15 +115,5 @@ public class CSVUtils{
             subTaskToString.append("\n");
         }
         return subTaskToString;
-    }
-
-    public static void historyFromString(String value) {
-        if (value.equals("\n")) {
-            return;
-        }
-        String[] ids = value.split(SPLITTER);
-        for (String id : ids) {
-            getUniversalTask(Integer.parseInt(id));
-        }
     }
 }

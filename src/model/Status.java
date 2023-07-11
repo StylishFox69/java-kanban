@@ -5,9 +5,13 @@ public enum Status {
     IN_PROGRESS("В процессе"),
     DONE("Завершен");
 
-    final String nameStatus;
+    private final String nameStatus;
 
     Status(String nameStatus) {
         this.nameStatus = nameStatus;
+    }
+
+    public String getNameStatus() {
+        return nameStatus;
     }
 }
