@@ -11,12 +11,6 @@ import java.util.List;
 public class CSVUtils {
     public static final String SPLITTER = ",";
     public static final String PATH = "resources/tasks.csv";
-    private static final File FILE = new File(PATH);
-    static FileBackedTasksManager fileBackedTasksManager = new FileBackedTasksManager(FILE);
-
-    public static FileBackedTasksManager getFb(){
-        return fileBackedTasksManager;
-    }
 
     public static Task fromString(String value) {
         String[] rows = value.split(SPLITTER);
@@ -51,20 +45,20 @@ public class CSVUtils {
         }
     }
 
-    public static boolean checkFile() {
-        if (FILE.exists()) {
+    public static boolean checkFile(FileBackedTasksManager fileBackedTasksManager) {
+        if (fileBackedTasksManager.getFILE().exists()) {
             return true;
         } else {
             return FileBackedTasksManager.createFile();
         }
     }
 
-    public static List<String> read() {
+    public static List<String> read(FileBackedTasksManager fileBackedTasksManager) {
         ArrayList<String> tasksFromFile = new ArrayList<>();
-        if (!checkFile()) {
+        if (!checkFile(fileBackedTasksManager)) {
             return tasksFromFile;
         }
-        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(FILE))) {
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fileBackedTasksManager.getFILE()))) {
             bufferedReader.readLine();
             while (bufferedReader.ready()) {
                 tasksFromFile.add(bufferedReader.readLine());

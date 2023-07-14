@@ -4,7 +4,7 @@ public class Managers {
     private Managers() {
     }
 
-    public static TaskManager getDefaultTaskManager() {
+    public static FileBackedTasksManager getDefaultTaskManager() {
         return new FileBackedTasksManager();
     }
 

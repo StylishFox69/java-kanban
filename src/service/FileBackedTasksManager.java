@@ -26,12 +26,16 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         file = FILE;
     }
 
+    public File getFILE() {
+        return FILE;
+    }
+
     public FileBackedTasksManager() {
     }
 
     public static void main(String[] args) {
         File file = new File(CSVUtils.PATH);
-        FileBackedTasksManager fileBackedTasksManager = CSVUtils.getFb();
+        FileBackedTasksManager fileBackedTasksManager = Managers.getDefaultTaskManager();
         Epic epic0 = fileBackedTasksManager.createEpic(new Epic("0", "DSSD"));
         SubTask subTask01 = fileBackedTasksManager.createSubTask(new SubTask("2", "ssd", Status.DONE, epic0.getId()));
         SubTask subTask02 = fileBackedTasksManager.createSubTask(new SubTask("3", "ds", Status.NEW, epic0.getId()));
@@ -82,7 +86,10 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         System.out.println("hhh1");
         System.out.println(fileBackedTasksManager.getHistory());
         fileBackedTasksManager = fileBackedTasksManager.loadFromFile(file);
-        System.out.println(fileBackedTasksManager);
+        System.out.println(fileBackedTasksManager.getEpics());
+        System.out.println(fileBackedTasksManager.getTasks());
+        System.out.println(fileBackedTasksManager.getSubTasks());
+        System.out.println(fileBackedTasksManager.getHistory());
     }
 
     public static boolean createFile() {
@@ -97,7 +104,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
 
     public FileBackedTasksManager loadFromFile(File file) {
         FileBackedTasksManager fb = new FileBackedTasksManager(file);
-        List<String> tasks = CSVUtils.read();
+        List<String> tasks = CSVUtils.read(fb);
         for (int i = 0; i < tasks.size() - 2; i++) {
             Task task = CSVUtils.fromString(tasks.get(i));
             switch (task.getType()) {
@@ -117,12 +124,11 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     break;
             }
         }
-        historyFromString(tasks.get(tasks.size() - 1));
+        historyFromString(tasks.get(tasks.size() - 1), fb);
         return fb;
     }
 
-    public static void historyFromString(String value) {
-        FileBackedTasksManager fileBackedTasksManager = CSVUtils.getFb();
+    public static void historyFromString(String value, FileBackedTasksManager fileBackedTasksManager) {
         if (value.equals(System.lineSeparator())) {
             return;
         }
