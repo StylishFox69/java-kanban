@@ -85,7 +85,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         }
         System.out.println("hhh1");
         System.out.println(fileBackedTasksManager.getHistory());
-        fileBackedTasksManager = fileBackedTasksManager.loadFromFile(file);
+        fileBackedTasksManager = loadFromFile(file);
         System.out.println(fileBackedTasksManager.getEpics());
         System.out.println(fileBackedTasksManager.getTasks());
         System.out.println(fileBackedTasksManager.getSubTasks());
@@ -102,7 +102,7 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
         return Files.exists(testFile);
     }
 
-    public FileBackedTasksManager loadFromFile(File file) {
+    public static FileBackedTasksManager loadFromFile(File file) {
         FileBackedTasksManager fb = new FileBackedTasksManager(file);
         List<String> tasks = CSVUtils.read(fb);
         for (int i = 0; i < tasks.size() - 2; i++) {
@@ -112,7 +112,6 @@ public class FileBackedTasksManager extends InMemoryTaskManager {
                     SubTask subTask = (SubTask) task;
                     Epic epic = fb.epics.get(subTask.getEpicId());
                     epic.getSubTaskIds().add(subTask.getId());
-                    calculateEpicStatus(epic);
                     fb.subTasks.put(subTask.getId(), subTask);
                     break;
                 case EPIC:
